@@ -1,1 +1,76 @@
-
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1020">
+<title>MYRA Urdu AI</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#121a2d;--line:#27334b;--text:#f3f6ff;--muted:#9aa8c2;--accent:#6ce5d4}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#182848 0,#0b1020 55%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+.app{max-width:760px;margin:0 auto;padding:18px 14px 28px;display:flex;flex-direction:column;min-height:100vh}
+header{display:flex;align-items:center;gap:12px;padding:10px 2px 20px}.orb{width:48px;height:48px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e2fff9,#6ce5d4 25%,#3378b8 60%,#15213f 75%);box-shadow:0 0 25px #55d9d566}
+h1{font-size:21px;margin:0}header p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.status{margin-left:auto;font-size:12px;color:var(--accent);border:1px solid #315a63;border-radius:99px;padding:7px 10px}
+.panel{background:#111a2bd9;border:1px solid var(--line);border-radius:22px;overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:440px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px;border-bottom:1px solid var(--line)}select,button,textarea{font:inherit}
+select{background:#1b2740;color:var(--text);border:1px solid #34435f;border-radius:12px;padding:10px;max-width:100%}
+.small{font-size:12px;color:var(--muted)}
+.chat{padding:18px 14px;display:flex;flex-direction:column;gap:14px;flex:1;overflow:auto}
+.msg{max-width:90%;padding:13px 15px;border-radius:17px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.bot{align-self:flex-start;background:#1b2941;border:1px solid #2a3b59}.user{align-self:flex-end;background:#174b52;border:1px solid #26716f}
+.msg .tag{font-size:11px;color:var(--muted);display:block;margin-bottom:5px}
+.composer{padding:12px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:flex-end}
+textarea{width:100%;resize:vertical;min-height:48px;max-height:130px;background:#0b1222;color:var(--text);border:1px solid #34435f;border-radius:15px;padding:13px;outline:none}
+button{border:0;border-radius:13px;padding:12px 14px;background:var(--accent);color:#081a22;font-weight:700;cursor:pointer}
+button.secondary{background:#202e48;color:var(--text);border:1px solid #34435f}button:disabled{opacity:.5}
+.actions{display:flex;gap:8px;flex-wrap:wrap;padding:0 12px 12px}.notice{margin:14px 4px 0;color:var(--muted);font-size:12px;line-height:1.5}
+@media(max-width:440px){.app{padding:12px 9px 18px}.status{font-size:10px}.msg{max-width:96%}.toolbar{padding:10px}.composer{padding:9px}.send-label{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<div class="orb" aria-hidden="true"></div>
+<div><h1>MYRA Urdu AI</h1><p id="subtitle">Your personal assistant · ابتدائی ورژن</p></div>
+<div class="status">● Ready</div>
+</header>
+<main class="panel">
+<div class="toolbar">
+<label for="language" class="small">Language / زبان</label>
+<select id="language" aria-label="Language">
+<option value="ur">اردو</option><option value="en">English</option>
+</select>
+<button class="secondary" id="clear">Clear / صاف</button>
+</div>
+<div class="chat" id="chat" aria-live="polite">
+<div class="msg bot" id="welcome"><span class="tag">MYRA · Demo</span>السلام علیکم! میں MYRA کا ابتدائی ڈیمو ہوں۔ ابھی میں حقیقی AI نہیں ہوں، لیکن آپ چیٹ لکھنے، براؤزر کی آواز آزمانے اور انٹرفیس چیک کرنے کے لیے استعمال کر سکتے ہیں۔</div>
+</div>
+<div class="composer">
+<textarea id="input" placeholder="اپنا پیغام لکھیں…" rows="1"></textarea>
+<button id="send" aria-label="Send">Send</button>
+</div>
+<div class="actions">
+<button class="secondary" id="mic">🎙️ Speak / بولیں</button>
+<button class="secondary" id="speak">🔊 Read last reply</button>
+<button class="secondary" id="stop">■ Stop voice</button>
+</div>
+</main>
+<p class="notice">Demo only: messages are not sent to an AI model. Microphone and speech features depend on your browser, device settings and language support. Never enter passwords or private information here.</p>
+</div>
+<script>
+const chat=document.getElementById('chat'), input=document.getElementById('input'), language=document.getElementById('language');
+let lastReply='السلام علیکم! یہ MYRA کا ابتدائی ڈیمو ہے۔ ابھی حقیقی AI منسلک نہیں ہے۔';
+function addMessage(text,who){const box=document.createElement('div');box.className='msg '+who;const tag=document.createElement('span');tag.className='tag';tag.textContent=who==='user'?'You / آپ':'MYRA · Demo';box.append(tag,document.createTextNode(text));chat.appendChild(box);chat.scrollTop=chat.scrollHeight;return box}
+function demoReply(text){const lang=language.value;const lower=text.toLowerCase();if(lang==='en'){if(/hello|hi|hey/.test(lower))return "Hello! I'm the MYRA demo. I can show the interface and test browser speech, but I don't have an AI model connected yet.";if(/who are you|your name/.test(lower))return "I'm MYRA Urdu AI, a starter demo. A real AI model has not been connected yet.";return "I received your message: “"+text+"”\n\nThis is only a demo, not an intelligent AI response. In the next stage we'll explore a free, no-paid-API model."}if(/سلام|السلام/.test(text))return "وعلیکم السلام! یہ MYRA کا ابتدائی ڈیمو ہے۔ ابھی حقیقی AI ماڈل منسلک نہیں ہے۔";if(/آپ کون|نام/.test(text))return "میرا نام MYRA Urdu AI ہے۔ یہ ابتدائی ڈیمو ہے، ابھی اس میں حقیقی AI شامل نہیں کیا گیا۔";return "آپ کا پیغام موصول ہوا: «"+text+"»\n\nیہ ابھی صرف ڈیمو ہے، حقیقی AI جواب نہیں۔ اگلے مرحلے میں ہم بغیر Paid API کے مفت AI ماڈل چلانے کا طریقہ دیکھیں گے۔"}
+function sendMessage(){const text=input.value.trim();if(!text)return;addMessage(text,'user');input.value='';lastReply=demoReply(text);addMessage(lastReply,'bot')}
+document.getElementById('send').addEventListener('click',sendMessage);
+input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}});
+document.getElementById('clear').addEventListener('click',()=>{chat.replaceChildren();lastReply='';});
+language.addEventListener('change',()=>{input.placeholder=language.value==='ur'?'اپنا پیغام لکھیں…':'Type your message…';});
+document.getElementById('speak').addEventListener('click',()=>{if(!lastReply){alert('There is no reply to read yet.');return}if(!('speechSynthesis'in window)){alert('Speech output is not supported in this browser.');return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(lastReply);u.lang=language.value==='ur'?'ur-PK':'en-US';speechSynthesis.speak(u)});
+document.getElementById('stop').addEventListener('click',()=>{if('speechSynthesis'in window)speechSynthesis.cancel()});
+document.getElementById('mic').addEventListener('click',()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('Voice recognition is not available in this browser. You can type messages for now.');return}const rec=new SR();rec.lang=language.value==='ur'?'ur-PK':'en-US';rec.interimResults=false;rec.onresult=e=>{input.value=e.results[0][0].transcript;input.focus()};rec.onerror=()=>alert('Microphone recognition failed. Check browser microphone permission, or type your message.');rec.start()});
+</script>
+</body>
+</html>
